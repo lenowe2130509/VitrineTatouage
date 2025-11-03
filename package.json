@@ -1,0 +1,14 @@
+{
+  "name": "portfolio",
+  "version": "1.0.0",
+  "dependencies": {
+    "gsap": "^3.13.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "live-server": "^1.2.2"
+  },
+  "scripts": {
+    "start": "cross-env BROWSER=chrome live-server ./"
+  }
+}

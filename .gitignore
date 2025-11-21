@@ -1,34 +1,65 @@
-# CRITIQUE : Fichiers sensibles à ne JAMAIS commiter
+# ========================================
+# FICHIERS SENSIBLES - NE JAMAIS COMMIT
+# ========================================
 .env
 .env.local
 .env.production
+*.env
 
-# Dépendances
+# ========================================
+# DÉPENDANCES
+# ========================================
 node_modules/
 package-lock.json
 
-# Base de données locale
+# ========================================
+# BASE DE DONNÉES
+# ========================================
 database.json
 *.db
 
-# Uploads temporaires
+# ========================================
+# UPLOADS TEMPORAIRES
+# ========================================
 Backend/temp/
 Backend/uploads/
+images-tattoo/
+images-mirror/
 
-# Logs
+# ========================================
+# LOGS
+# ========================================
 logs/
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
+# ========================================
 # OS
+# ========================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# IDE
+# ========================================
+# IDE / ÉDITEURS
+# ========================================
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.project
+.settings/
 
-# Cloudinary (si tu as un fichier de config)
-cloudinary-config.json
+# ========================================
+# DIVERS
+# ========================================
+*.bak
+*.tmp
+.cache/

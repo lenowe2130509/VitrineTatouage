@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nalla Ink - Tatoueur & Graveur Professionnel Bretagne</title>
+    <meta name="description" content="Tatoueur et graveur professionnel en Bretagne, studio privé. Création de tatouages personnalisés et gravures sur miroir. Sponsorisé par Biopiq.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">NALLA INK</div>
+        <ul class="nav-links">
+            <li><a href="#accueil">Accueil</a></li>
+            <li><a href="#galerie">Galerie</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="accueil" class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1>NALLA INK</h1>
+            <p>Tatoueur & Graveur Breton • Studio Privé</p>
+            <a href="#contact" class="cta-button">Prendre Rendez-vous</a>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="galerie" class="gallery">
+        <h2 class="section-title">Galerie</h2>
+        
+        <!-- Filtres -->
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="tattoo">Tatouages</button>
+            <button class="filter-btn" data-filter="mirror">Gravures sur Miroir</button>
+        </div>
+
+        <!-- Message si pas d'images -->
+        <div id="emptyMessage" class="empty-message" style="display: none;">
+            <p>La galerie sera bientôt disponible avec de magnifiques réalisations !</p>
+        </div>
+
+        <!-- Grille de galerie -->
+        <div class="gallery-grid" id="galleryGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Chargement de la galerie...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <h2 class="section-title">Services</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🖊️</div>
+                <h3>Tatouages Custom</h3>
+                <p>Création de designs personnalisés adaptés à votre vision. Du réalisme au géométrique, tous styles disponibles.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">✨</div>
+                <h3>Gravure sur Miroir</h3>
+                <p>Réalisation de gravures artistiques sur miroir pour votre décoration intérieure. Pièces uniques et sur-mesure.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🎨</div>
+                <h3>Cover-up</h3>
+                <p>Transformation et recouvrement de tatouages existants avec expertise et créativité.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="contact-container">
+            <h2 class="section-title">Contact</h2>
+            <p class="contact-intro">
+                Prêt à concrétiser votre projet ? Contactez-moi pour discuter de votre tatouage ou commande de gravure.
+            </p>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <h3>📍 Studio</h3>
+                    <p>Studio Privé<br>Morbihan, Bretagne<br>Sur rendez-vous uniquement</p>
+                </div>
+                <div class="contact-item">
+                    <h3>📧 Email</h3>
+                    <p><a href="mailto:contact@nalla-ink.fr">contact@nalla-ink.fr</a></p>
+                </div>
+                <div class="contact-item">
+                    <h3>📱 Instagram</h3>
+                    <p><a href="https://www.instagram.com/nalla_ink/" target="_blank" rel="noopener noreferrer">@nalla_ink</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Nalla Ink - Tatoueur & Graveur Professionnel | Morbihan, Bretagne</p>
+        <p class="sponsor">Sponsorisé par Biopiq</p>
+    </footer>
+
+    <!-- Modal pour agrandir les images -->
+    <div id="imageModal" class="modal">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modalImage" alt="Image agrandie">
+        <div class="modal-caption" id="modalCaption"></div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+# CRITIQUE : Fichiers sensibles à ne JAMAIS commiter
+.env
+.env.local
+.env.production
+
+# Dépendances
+node_modules/
+package-lock.json
+
+# Base de données locale
+database.json
+*.db
+
+# Uploads temporaires
+Backend/temp/
+Backend/uploads/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cloudinary (si tu as un fichier de config)
+cloudinary-config.json

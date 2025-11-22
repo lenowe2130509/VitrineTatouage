@@ -1,3 +1,7 @@
+/* ========================================
+   ADMIN.JS - CORRIGÉ
+   ======================================== */
+
 // Configuration API
 const API_URL = 'http://localhost:3000/api';
 
@@ -18,7 +22,9 @@ if (authToken) {
     showDashboard();
 }
 
-// Login
+// ========================================
+// LOGIN
+// ========================================
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -44,15 +50,17 @@ loginForm.addEventListener('submit', async (e) => {
                 showDashboard();
             }, 500);
         } else {
-            showAlert('loginAlert', data.error || 'Erreur de connexion', 'error');
+            showAlert('loginAlert', data.error || 'Identifiants incorrects', 'error');
         }
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur login:', error);
         showAlert('loginAlert', 'Erreur de connexion au serveur', 'error');
     }
 });
 
-// Logout
+// ========================================
+// LOGOUT
+// ========================================
 logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('adminToken');
     authToken = null;
@@ -61,10 +69,28 @@ logoutBtn.addEventListener('click', () => {
     loginForm.reset();
 });
 
-// Preview de l'image
+// ========================================
+// PREVIEW IMAGE
+// ========================================
 imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+        // Vérifie le type de fichier
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            showAlert('dashboardAlert', 'Type de fichier invalide. Utilisez JPG, PNG ou WebP', 'error');
+            imageInput.value = '';
+            return;
+        }
+        
+        // Vérifie la taille (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('dashboardAlert', 'Fichier trop volumineux. Maximum 5MB', 'error');
+            imageInput.value = '';
+            return;
+        }
+        
+        // Affiche la preview
         const reader = new FileReader();
         reader.onload = (e) => {
             previewImage.src = e.target.result;
@@ -74,11 +100,12 @@ imageInput.addEventListener('change', (e) => {
     }
 });
 
-// Upload d'image
+// ========================================
+// UPLOAD IMAGE
+// ========================================
 uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const formData = new FormData();
     const imageFile = imageInput.files[0];
     
     if (!imageFile) {
@@ -86,18 +113,27 @@ uploadForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    // Vérifier la taille du fichier (5MB max)
+    // Vérifications
     if (imageFile.size > 5 * 1024 * 1024) {
         showAlert('dashboardAlert', 'L\'image est trop volumineuse (max 5MB)', 'error');
         return;
     }
     
+    const formData = new FormData();
     formData.append('image', imageFile);
     formData.append('category', document.getElementById('category').value);
     formData.append('title', document.getElementById('title').value);
     formData.append('description', document.getElementById('description').value);
     
+    // Affiche un loader
+    const submitBtn = uploadForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Upload en cours...';
+    submitBtn.disabled = true;
+    
     try {
+        console.log('Envoi de l\'image...'); // Debug
+        
         const response = await fetch(`${API_URL}/admin/upload`, {
             method: 'POST',
             headers: {
@@ -106,31 +142,39 @@ uploadForm.addEventListener('submit', async (e) => {
             body: formData
         });
         
+        console.log('Réponse reçue:', response.status); // Debug
+        
         const data = await response.json();
         
         if (response.ok) {
             showAlert('dashboardAlert', 'Image uploadée avec succès!', 'success');
             uploadForm.reset();
             previewImage.style.display = 'none';
-            loadGallery(); // Recharger la galerie
+            loadGallery(); // Recharge la galerie
         } else {
             if (response.status === 401 || response.status === 403) {
-                showAlert('dashboardAlert', 'Session expirée, veuillez vous reconnecter', 'error');
+                showAlert('dashboardAlert', 'Session expirée, reconnectez-vous', 'error');
                 setTimeout(() => {
                     localStorage.removeItem('adminToken');
                     location.reload();
                 }, 2000);
             } else {
                 showAlert('dashboardAlert', data.error || 'Erreur lors de l\'upload', 'error');
+                console.error('Erreur détaillée:', data); // Debug
             }
         }
     } catch (error) {
-        console.error('Erreur:', error);
-        showAlert('dashboardAlert', 'Erreur lors de l\'upload', 'error');
+        console.error('Erreur upload:', error);
+        showAlert('dashboardAlert', `Erreur: ${error.message}`, 'error');
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
     }
 });
 
-// Charger la galerie admin
+// ========================================
+// CHARGER LA GALERIE
+// ========================================
 async function loadGallery() {
     const galleryContainer = document.getElementById('adminGallery');
     
@@ -151,8 +195,11 @@ async function loadGallery() {
             
             const categoryLabel = image.category === 'tattoo' ? 'Tatouage' : 'Gravure';
             
+            // Utilise l'URL Cloudinary directement
+            const imageUrl = image.url || image.path;
+            
             item.innerHTML = `
-                <img src="${API_URL.replace('/api', '')}${image.path}" alt="${image.title || categoryLabel}">
+                <img src="${imageUrl}" alt="${image.title || categoryLabel}">
                 <div class="overlay">
                     <div class="info">
                         <strong>${image.title || categoryLabel}</strong><br>
@@ -168,12 +215,14 @@ async function loadGallery() {
         });
         
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur chargement galerie:', error);
         galleryContainer.innerHTML = '<div class="loading" style="color: #f44336;">Erreur de chargement</div>';
     }
 }
 
-// Supprimer une image
+// ========================================
+// SUPPRIMER UNE IMAGE
+// ========================================
 async function deleteImage(imageId) {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
         return;
@@ -191,10 +240,10 @@ async function deleteImage(imageId) {
         
         if (response.ok) {
             showAlert('dashboardAlert', 'Image supprimée avec succès', 'success');
-            loadGallery(); // Recharger la galerie
+            loadGallery();
         } else {
             if (response.status === 401 || response.status === 403) {
-                showAlert('dashboardAlert', 'Session expirée, veuillez vous reconnecter', 'error');
+                showAlert('dashboardAlert', 'Session expirée, reconnectez-vous', 'error');
                 setTimeout(() => {
                     localStorage.removeItem('adminToken');
                     location.reload();
@@ -204,19 +253,23 @@ async function deleteImage(imageId) {
             }
         }
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur suppression:', error);
         showAlert('dashboardAlert', 'Erreur lors de la suppression', 'error');
     }
 }
 
-// Afficher le dashboard
+// ========================================
+// AFFICHER LE DASHBOARD
+// ========================================
 function showDashboard() {
     loginPage.style.display = 'none';
     adminDashboard.style.display = 'block';
     loadGallery();
 }
 
-// Afficher une alerte
+// ========================================
+// AFFICHER UNE ALERTE
+// ========================================
 function showAlert(containerId, message, type) {
     const container = document.getElementById(containerId);
     const alertClass = type === 'success' ? 'alert-success' : 'alert-error';

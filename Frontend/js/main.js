@@ -1,11 +1,14 @@
 /* ========================================
-   NALLA INK - MAIN JAVASCRIPT
+   NALLA INK - CAROUSEL HORIZONTAL
    ======================================== */
 
-// Configuration - IMPORTANT: Changez cette URL pour votre domaine en production
 const API_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:3000/api' 
-    : '/api'; // En production
+    : `http://${window.location.hostname}:3000/api`;
+
+let currentFilter = 'all';
+let allImages = [];
+let isLoading = false;
 
 // ========================================
 // SMOOTH SCROLL
@@ -38,15 +41,14 @@ window.addEventListener('scroll', () => {
 });
 
 // ========================================
-// GALLERY
+// CAROUSEL HORIZONTAL
 // ========================================
 
-let currentFilter = 'all';
-let allImages = [];
-
-// Charger la galerie
 async function loadGallery(filter = 'all') {
-    const galleryGrid = document.getElementById('galleryGrid');
+    if (isLoading) return;
+    isLoading = true;
+    
+    const carouselScroll = document.getElementById('carouselScroll');
     const emptyMessage = document.getElementById('emptyMessage');
     
     try {
@@ -59,73 +61,116 @@ async function loadGallery(filter = 'all') {
         const images = await response.json();
         allImages = images;
         
-        // Si aucune image
+        carouselScroll.innerHTML = '';
+        
         if (images.length === 0) {
-            galleryGrid.innerHTML = '';
             emptyMessage.style.display = 'block';
+            carouselScroll.innerHTML = `
+                <div class="loading">
+                    <p>Aucune image disponible pour cette catégorie.</p>
+                </div>
+            `;
             return;
         }
         
         emptyMessage.style.display = 'none';
-        galleryGrid.innerHTML = '';
         
-        // Créer les éléments de galerie
+        // Créer les cartes du carousel
         images.forEach((image, index) => {
-            const item = createGalleryItem(image, index);
-            galleryGrid.appendChild(item);
+            const card = createCarouselCard(image, index);
+            carouselScroll.appendChild(card);
         });
         
     } catch (error) {
-        console.error('Erreur chargement galerie:', error);
-        galleryGrid.innerHTML = `
-            <div class="loading" style="color: var(--error);">
-                <p>Erreur lors du chargement de la galerie.</p>
-                <p style="font-size: 0.9rem; margin-top: 1rem;">
-                    Assurez-vous que le serveur est démarré.
-                </p>
+        console.error('Erreur:', error);
+        carouselScroll.innerHTML = `
+            <div class="loading" style="color: #f44336;">
+                <p>Erreur de chargement</p>
             </div>
         `;
+    } finally {
+        isLoading = false;
     }
 }
 
-// Créer un élément de galerie
-function createGalleryItem(image, index) {
-    const item = document.createElement('article');
-    item.className = 'gallery-item';
-    item.dataset.category = image.category;
-    item.style.animationDelay = `${index * 0.1}s`;
+function createCarouselCard(image, index) {
+    const card = document.createElement('div');
+    card.className = 'carousel-card';
+    card.style.animationDelay = `${index * 0.1}s`;
     
     const categoryLabel = image.category === 'tattoo' ? 'Tatouage' : 'Gravure';
-    
-    // Pour Cloudinary: l'URL est directement dans image.url
-    // Pour backend local: l'URL est dans image.path
     const imageUrl = image.url || `${API_URL.replace('/api', '')}${image.path}`;
     
-    item.innerHTML = `
-        <span class="category-badge">${categoryLabel}</span>
-        <img src="${imageUrl}" 
-             alt="${image.title || categoryLabel}"
-             loading="lazy">
-        <div class="gallery-overlay">
+    card.innerHTML = `
+        <img src="${imageUrl}" alt="${image.title || categoryLabel}" loading="lazy">
+        <div class="carousel-card-overlay">
+            <span class="category-badge">${categoryLabel}</span>
             <h3>${image.title || categoryLabel}</h3>
             ${image.description ? `<p>${escapeHtml(image.description)}</p>` : ''}
         </div>
     `;
     
     // Clic pour agrandir
-    item.addEventListener('click', () => {
+    card.addEventListener('click', () => {
         openModal(image, imageUrl);
     });
     
-    return item;
+    return card;
 }
 
-// Escape HTML pour sécurité
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
+
+// ========================================
+// NAVIGATION CAROUSEL
+// ========================================
+
+const scrollLeft = document.getElementById('scrollLeft');
+const scrollRight = document.getElementById('scrollRight');
+const carouselScroll = document.getElementById('carouselScroll');
+
+scrollLeft?.addEventListener('click', () => {
+    carouselScroll.scrollBy({
+        left: -450, // Largeur d'une carte + gap
+        behavior: 'smooth'
+    });
+});
+
+scrollRight?.addEventListener('click', () => {
+    carouselScroll.scrollBy({
+        left: 450,
+        behavior: 'smooth'
+    });
+});
+
+// Navigation au clavier
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+        carouselScroll.scrollBy({
+            left: -450,
+            behavior: 'smooth'
+        });
+    } else if (e.key === 'ArrowRight') {
+        carouselScroll.scrollBy({
+            left: 450,
+            behavior: 'smooth'
+        });
+    }
+});
+
+// Scroll avec la molette de la souris (horizontal)
+carouselScroll?.addEventListener('wheel', (e) => {
+    if (e.deltaY !== 0) {
+        e.preventDefault();
+        carouselScroll.scrollBy({
+            left: e.deltaY,
+            behavior: 'smooth'
+        });
+    }
+});
 
 // ========================================
 // FILTRES
@@ -135,7 +180,8 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 
 filterBtns.forEach(btn => {
     btn.addEventListener('click', async () => {
-        // Mettre à jour les boutons actifs
+        if (isLoading) return;
+        
         filterBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
@@ -147,7 +193,7 @@ filterBtns.forEach(btn => {
 });
 
 // ========================================
-// MODAL IMAGE
+// MODAL
 // ========================================
 
 const modal = document.getElementById('imageModal');
@@ -166,7 +212,6 @@ function openModal(image, imageUrl) {
         ${image.description ? `<p>${escapeHtml(image.description)}</p>` : ''}
     `;
     
-    // Empêcher le scroll du body
     document.body.style.overflow = 'hidden';
 }
 
@@ -175,13 +220,10 @@ function closeModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Événements de fermeture
-modalClose.addEventListener('click', closeModal);
+modalClose?.addEventListener('click', closeModal);
 
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-        closeModal();
-    }
+modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
 });
 
 document.addEventListener('keydown', (e) => {
@@ -196,8 +238,6 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadGallery('all');
-    
-    // Log pour debug
-    console.log('🎨 Nalla Ink - Site chargé');
+    console.log('🎨 Nalla Ink - Carousel horizontal chargé');
     console.log('📡 API URL:', API_URL);
 });

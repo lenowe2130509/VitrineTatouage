@@ -3,121 +3,446 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nalla Ink - Tatoueur & Graveur Professionnel Bretagne</title>
-    <meta name="description" content="Tatoueur et graveur professionnel en Bretagne, studio privé. Création de tatouages personnalisés et gravures sur miroir. Sponsorisé par Biopiq.">
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Nalla Ink - Tatoueur Bretagne</title>
     <link rel="icon" type="image/jpg" href="images/nalla-ink.jpg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #0a0a0a;
+            --dark-gray: #1a1a1a;
+            --accent: #c9a063;
+        }
+
+        body {
+            background: var(--black);
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
+        }
+
+        /* Hero minimaliste */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            background: 
+                linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
+                url('https://images.unsplash.com/photo-1565058379802-bbe93b2f703a?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 900;
+            letter-spacing: 0.5rem;
+            color: var(--accent);
+            text-shadow: 0 0 30px rgba(201, 160, 99, 0.5);
+            margin-bottom: 1rem;
+        }
+
+        .hero .tagline {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            letter-spacing: 0.3rem;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .hero .location {
+            margin-top: 2rem;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.2rem;
+        }
+
+        /* Section Works */
+        .works {
+            padding: 5rem 2rem;
+            background: var(--black);
+        }
+
+        .works h2 {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: 0.5rem;
+            color: var(--accent);
+            margin-bottom: 4rem;
+            text-transform: uppercase;
+        }
+
+        /* Carousel horizontal brutal */
+        .carousel-wrapper {
+            position: relative;
+            max-width: 100%;
+            overflow: hidden;
+            padding: 0 80px;
+        }
+
+        .carousel-track {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding: 2rem 0;
+        }
+
+        .carousel-track::-webkit-scrollbar {
+            display: none;
+        }
+
+        .work-card {
+            flex: 0 0 400px;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid rgba(201, 160, 99, 0.2);
+            transition: all 0.4s ease;
+        }
+
+        .work-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(201, 160, 99, 0.3);
+        }
+
+        .work-card img {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            display: block;
+            filter: grayscale(30%);
+            transition: filter 0.4s;
+        }
+
+        .work-card:hover img {
+            filter: grayscale(0%);
+        }
+
+        .work-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+            padding: 2rem;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+
+        .work-card:hover .work-info {
+            transform: translateY(0);
+        }
+
+        .work-info .tag {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--black);
+            padding: 0.3rem 0.8rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .work-info h3 {
+            color: var(--accent);
+            font-size: 1.3rem;
+            letter-spacing: 0.2rem;
+            font-weight: 400;
+        }
+
+        /* Boutons flèches */
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(201, 160, 99, 0.9);
+            color: var(--black);
+            border: none;
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .arrow:hover {
+            background: var(--accent);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .arrow.left { left: 10px; }
+        .arrow.right { right: 10px; }
+
+        /* Contact brutal */
+        .contact {
+            padding: 5rem 2rem;
+            background: var(--dark-gray);
+            text-align: center;
+        }
+
+        .contact h2 {
+            font-size: 2.5rem;
+            letter-spacing: 0.5rem;
+            color: var(--accent);
+            margin-bottom: 2rem;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            text-align: center;
+        }
+
+        .contact-item h3 {
+            color: var(--accent);
+            font-size: 1rem;
+            letter-spacing: 0.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-item a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .contact-item a:hover {
+            color: var(--accent);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2rem;
+            text-align: center;
+            background: var(--black);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            letter-spacing: 0.1rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--accent);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 1rem;
+            border: 3px solid rgba(201, 160, 99, 0.2);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 30px;
+            right: 50px;
+            color: var(--accent);
+            font-size: 50px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .carousel-wrapper {
+                padding: 0 50px;
+            }
+            
+            .work-card {
+                flex: 0 0 300px;
+            }
+            
+            .work-card img {
+                height: 400px;
+            }
+            
+            .arrow {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5rem;
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                gap: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="logo">NALLA INK</div>
-        <ul class="nav-links">
-            <li><a href="#accueil">Accueil</a></li>
-            <li><a href="#galerie">Galerie</a></li>
-            <li><a href="#services">Services</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-    </nav>
-
-    <!-- Hero Section -->
-    <section id="accueil" class="hero">
-        <div class="hero-content">
-            <!-- Logo ajouté -->
-            <img src="images/logo-nalla-ink.png" 
-                alt="Nalla Ink Logo" 
-                class="hero-logo">
-            
-            <h1>NALLA INK</h1>
-            <p>Tatoueur & Graveur Breton • Studio Privé</p>
-            <a href="#contact" class="cta-button">Prendre Rendez-vous</a>
-        </div>
+    <!-- Hero -->
+    <section class="hero">
+        <h1>NALLA INK</h1>
+        <div class="tagline">Tatoueur • Bretagne</div>
+        <div class="location">Morbihan • Studio Privé</div>
     </section>
 
-    <!-- Gallery Section -->
-    <section id="galerie" class="gallery">
-        <h2 class="section-title">Galerie</h2>
+    <!-- Works -->
+    <section class="works">
+        <h2>Réalisations</h2>
         
-        <!-- Filtres -->
-        <div class="filters">
-            <button class="filter-btn active" data-filter="all">Tous</button>
-            <button class="filter-btn" data-filter="tattoo">Tatouages</button>
-            <button class="filter-btn" data-filter="mirror">Gravures sur Miroir</button>
-        </div>
-
-        <!-- Message si pas d'images -->
-        <div id="emptyMessage" class="empty-message" style="display: none;">
-            <p>La galerie sera bientôt disponible avec de magnifiques réalisations !</p>
-        </div>
-
-        <!-- Grille de galerie -->
-        <div class="gallery-grid" id="galleryGrid">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Chargement de la galerie...</p>
+        <div class="carousel-wrapper">
+            <button class="arrow left" onclick="scroll(-450)">‹</button>
+            
+            <div class="carousel-track" id="gallery">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Chargement...</p>
+                </div>
             </div>
+            
+            <button class="arrow right" onclick="scroll(450)">›</button>
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section id="services" class="services">
-        <h2 class="section-title">Services</h2>
-        <div class="services-grid">
-            <div class="service-card">
-                <div class="service-icon">🖊️</div>
-                <h3>Tatouages Custom</h3>
-                <p>Création de designs personnalisés adaptés à votre vision. Du réalisme au géométrique, tous styles disponibles.</p>
+    <!-- Contact -->
+    <section class="contact">
+        <h2>Contact</h2>
+        <p style="color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto;">
+            Prêt à concrétiser votre projet ? Parlons-en.
+        </p>
+        
+        <div class="contact-info">
+            <div class="contact-item">
+                <h3>📧 Email</h3>
+                <a href="mailto:contact@nalla-ink.fr">contact@nalla-ink.fr</a>
             </div>
-            <div class="service-card">
-                <div class="service-icon">✨</div>
-                <h3>Gravure sur Miroir</h3>
-                <p>Réalisation de gravures artistiques sur miroir pour votre décoration intérieure. Pièces uniques et sur-mesure.</p>
-            </div>
-            <div class="service-card">
-                <div class="service-icon">🎨</div>
-                <h3>Cover-up</h3>
-                <p>Transformation et recouvrement de tatouages existants avec expertise et créativité.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <div class="contact-container">
-            <h2 class="section-title">Contact</h2>
-            <p class="contact-intro">
-                Prêt à concrétiser votre projet ? Contactez-moi pour discuter de votre tatouage ou commande de gravure.
-            </p>
-            <div class="contact-info">
-                <div class="contact-item">
-                    <h3>📍 Studio</h3>
-                    <p>Studio Privé<br>Morbihan, Bretagne<br>Sur rendez-vous uniquement</p>
-                </div>
-                <div class="contact-item">
-                    <h3>📧 Email</h3>
-                    <p><a href="mailto:contact@nalla-ink.fr">contact@nalla-ink.fr</a></p>
-                </div>
-                <div class="contact-item">
-                    <h3>📱 Instagram</h3>
-                    <p><a href="https://www.instagram.com/nalla_ink/" target="_blank" rel="noopener noreferrer">@nalla_ink</a></p>
-                </div>
+            <div class="contact-item">
+                <h3>📱 Instagram</h3>
+                <a href="https://www.instagram.com/nalla_ink/" target="_blank">@nalla_ink</a>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <p>© 2025 Nalla Ink - Tatoueur & Graveur Professionnel | Morbihan, Bretagne</p>
-        <p class="sponsor">Sponsorisé par Biopiq</p>
-    </footer>
-
-    <!-- Modal pour agrandir les images -->
-    <div id="imageModal" class="modal">
-        <span class="modal-close">&times;</span>
-        <img class="modal-content" id="modalImage" alt="Image agrandie">
-        <div class="modal-caption" id="modalCaption"></div>
+    <div class="footer">
+        © 2025 Nalla Ink • Sponsorisé par Biopiq
     </div>
 
-    <script src="js/main.js"></script>
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="closeModal()">
+        <span class="modal-close">×</span>
+        <img class="modal-content" id="modalImg">
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api' 
+            : `http://${window.location.hostname}:3000/api`;
+
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modalImg');
+
+        // Charger la galerie
+        async function loadGallery() {
+            try {
+                const response = await fetch(`${API_URL}/gallery`);
+                const images = await response.json();
+                
+                gallery.innerHTML = '';
+                
+                if (images.length === 0) {
+                    gallery.innerHTML = '<div class="loading"><p>Aucune image disponible</p></div>';
+                    return;
+                }
+                
+                images.forEach(img => {
+                    const card = document.createElement('div');
+                    card.className = 'work-card';
+                    
+                    const url = img.url || `${API_URL.replace('/api', '')}${img.path}`;
+                    const type = img.category === 'tattoo' ? 'TATOUAGE' : 'GRAVURE';
+                    
+                    card.innerHTML = `
+                        <img src="${url}" alt="${img.title || type}">
+                        <div class="work-info">
+                            <div class="tag">${type}</div>
+                            <h3>${img.title || type}</h3>
+                        </div>
+                    `;
+                    
+                    card.onclick = () => {
+                        modal.style.display = 'block';
+                        modalImg.src = url;
+                    };
+                    
+                    gallery.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                gallery.innerHTML = '<div class="loading" style="color:#f44336;"><p>Erreur de chargement</p></div>';
+            }
+        }
+
+        function scroll(amount) {
+            gallery.scrollBy({ left: amount, behavior: 'smooth' });
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Clavier
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') scroll(-450);
+            if (e.key === 'ArrowRight') scroll(450);
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Init
+        loadGallery();
+        console.log('🎨 Nalla Ink loaded');
+        console.log('📡 API:', API_URL);
+    </script>
 </body>
 </html>

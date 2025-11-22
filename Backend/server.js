@@ -33,11 +33,28 @@ cloudinary.config({
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, '../Frontend')));
 
 // Multer pour stockage temporaire
+const storage = multer.diskStorage({
+    destination: async (req, file, cb) => {
+        const tempDir = path.join(__dirname, 'temp');
+        try {
+            await fs.mkdir(tempDir, { recursive: true });
+            cb(null, tempDir);
+        } catch (error) {
+            console.error('Erreur création dossier temp:', error);
+            cb(error);
+        }
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueName + path.extname(file.originalname));
+    }
+});
+
 const upload = multer({
-    dest: path.join(__dirname, 'temp'),
+    storage: storage,
     limits: { 
         fileSize: 5 * 1024 * 1024, // 5MB max
         files: 1
@@ -69,7 +86,6 @@ async function initDB() {
             images: [],
             admin: {
                 username: 'admin',
-                // Mot de passe par défaut: admin123
                 password: await bcrypt.hash('admin123', 10)
             }
         };
@@ -122,7 +138,6 @@ function authenticateToken(req, res, next) {
 // ROUTES PUBLIQUES
 // ========================================
 
-// Récupérer toutes les images
 app.get('/api/gallery', async (req, res) => {
     try {
         const db = await readDB();
@@ -134,7 +149,6 @@ app.get('/api/gallery', async (req, res) => {
             images = images.filter(img => img.category === category);
         }
         
-        // Trier par date (plus récent en premier)
         images.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
         
         res.json(images);
@@ -183,43 +197,13 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-// Changer le mot de passe
-app.post('/api/admin/change-password', authenticateToken, async (req, res) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
-        
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ error: 'Mots de passe requis' });
-        }
-        
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: 'Le nouveau mot de passe doit faire au moins 6 caractères' });
-        }
-        
-        const db = await readDB();
-        
-        const validPassword = await bcrypt.compare(currentPassword, db.admin.password);
-        
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
-        }
-        
-        db.admin.password = await bcrypt.hash(newPassword, 10);
-        await writeDB(db);
-        
-        console.log('✅ Mot de passe changé');
-        res.json({ message: 'Mot de passe changé avec succès' });
-    } catch (error) {
-        console.error('Erreur POST /api/admin/change-password:', error);
-        res.status(500).json({ error: 'Erreur lors du changement de mot de passe' });
-    }
-});
-
-// Upload image vers Cloudinary
+// Upload image
 app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (req, res) => {
     let tempFilePath = null;
     
     try {
+        console.log('📤 Upload reçu');
+        
         if (!req.file) {
             return res.status(400).json({ error: 'Aucune image fournie' });
         }
@@ -227,7 +211,15 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
         tempFilePath = req.file.path;
         const { category, title, description } = req.body;
         
-        console.log('📤 Upload vers Cloudinary...');
+        console.log('📂 Fichier temporaire:', tempFilePath);
+        console.log('📋 Catégorie:', category);
+        
+        // Vérification Cloudinary
+        if (!process.env.CLOUDINARY_CLOUD_NAME) {
+            throw new Error('CLOUDINARY_CLOUD_NAME manquant dans .env');
+        }
+        
+        console.log('☁️  Upload vers Cloudinary...');
         
         // Upload vers Cloudinary
         const result = await cloudinary.uploader.upload(tempFilePath, {
@@ -264,20 +256,19 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
         });
         
     } catch (error) {
-        console.error('Erreur POST /api/admin/upload:', error);
+        console.error('❌ ERREUR UPLOAD:', error);
+        console.error('Stack trace:', error.stack);
         
-        if (error.message.includes('Cloudinary')) {
-            res.status(500).json({ 
-                error: 'Erreur lors de l\'upload vers Cloudinary. Vérifiez vos credentials.' 
-            });
-        } else {
-            res.status(500).json({ error: 'Erreur lors de l\'upload de l\'image' });
-        }
+        res.status(500).json({ 
+            error: 'Erreur lors de l\'upload',
+            details: error.message
+        });
     } finally {
         // Nettoyer le fichier temporaire
         if (tempFilePath) {
             try {
                 await fs.unlink(tempFilePath);
+                console.log('🗑️  Fichier temporaire supprimé');
             } catch (e) {
                 console.error('Erreur suppression fichier temp:', e);
             }
@@ -306,7 +297,6 @@ app.delete('/api/admin/image/:id', authenticateToken, async (req, res) => {
                 console.log('✅ Image supprimée de Cloudinary:', image.cloudinaryId);
             } catch (error) {
                 console.error('Erreur suppression Cloudinary:', error);
-                // Continuer même si la suppression Cloudinary échoue
             }
         }
         
@@ -322,53 +312,20 @@ app.delete('/api/admin/image/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Mettre à jour une image
-app.put('/api/admin/image/:id', authenticateToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, description, category } = req.body;
-        const db = await readDB();
-        
-        const imageIndex = db.images.findIndex(img => img.id === id);
-        
-        if (imageIndex === -1) {
-            return res.status(404).json({ error: 'Image non trouvée' });
-        }
-        
-        db.images[imageIndex] = {
-            ...db.images[imageIndex],
-            title: title !== undefined ? title : db.images[imageIndex].title,
-            description: description !== undefined ? description : db.images[imageIndex].description,
-            category: category || db.images[imageIndex].category,
-            updatedAt: new Date().toISOString()
-        };
-        
-        await writeDB(db);
-        
-        console.log('✅ Image mise à jour:', id);
-        res.json({
-            message: 'Image mise à jour avec succès',
-            image: db.images[imageIndex]
-        });
-    } catch (error) {
-        console.error('Erreur PUT /api/admin/image:', error);
-        res.status(500).json({ error: 'Erreur lors de la mise à jour' });
-    }
-});
-
 // ========================================
 // GESTION DES ERREURS
 // ========================================
 
-// Erreur 404
 app.use((req, res) => {
     res.status(404).json({ error: 'Route non trouvée' });
 });
 
-// Erreur serveur
 app.use((err, req, res, next) => {
-    console.error('Erreur serveur:', err);
-    res.status(500).json({ error: 'Erreur interne du serveur' });
+    console.error('❌ Erreur serveur:', err);
+    res.status(500).json({ 
+        error: 'Erreur interne du serveur',
+        details: err.message
+    });
 });
 
 // ========================================
@@ -377,13 +334,10 @@ app.use((err, req, res, next) => {
 
 async function startServer() {
     try {
-        // Créer le dossier temp s'il n'existe pas
+        // Créer le dossier temp
         const tempDir = path.join(__dirname, 'temp');
-        try {
-            await fs.mkdir(tempDir, { recursive: true });
-        } catch (e) {
-            // Dossier existe déjà
-        }
+        await fs.mkdir(tempDir, { recursive: true });
+        console.log('📁 Dossier temp créé/vérifié');
         
         // Initialiser la DB
         await initDB();
@@ -408,7 +362,6 @@ async function startServer() {
             console.log('⚠️  IMPORTANT:');
             console.log('   - Login admin par défaut: admin / admin123');
             console.log('   - Changez le mot de passe immédiatement!');
-            console.log('   - Changez JWT_SECRET dans .env');
             console.log('='.repeat(50) + '\n');
         });
     } catch (error) {
@@ -417,16 +370,9 @@ async function startServer() {
     }
 }
 
-// Démarrer
 startServer();
 
-// Gestion arrêt propre
 process.on('SIGINT', async () => {
-    console.log('\n👋 Arrêt du serveur...');
-    process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
     console.log('\n👋 Arrêt du serveur...');
     process.exit(0);
 });

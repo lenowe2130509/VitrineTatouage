@@ -2,28 +2,58 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="Nalla Ink - Tatoueur et graveur professionnel en Bretagne. Art corporel et gravure sur miroir sur mesure.">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Nalla Ink - Tatoueur & Graveur Bretagne</title>
     <link rel="icon" type="image/jpg" href="images/nalla-ink.jpg">
-    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Preconnect pour optimiser le chargement -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+
+    <!-- Preload des ressources critiques -->
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preload" href="js/main.js" as="script">
+    <link rel="preload" href="images/nalla-ink.jpg" as="image">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Fonts avec display=swap pour éviter le FOIT -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;700&display=swap" rel="stylesheet"></noscript>
 </head>
 <body>
-    <!-- Rideau d'ouverture -->
+    <!-- Rideau d'ouverture avec logo et texte divisés -->
     <div class="curtain">
         <div class="curtain-left">
-            <div class="curtain-logo">
-                <img src="images/nalla-ink.jpg" alt="Nalla Ink">
-                <div class="loading-text">NALLA INK</div>
-                <div class="loading-bar">
-                    <div class="loading-progress"></div>
-                </div>
+            <div class="curtain-logo-half curtain-logo-left">
+                <img src="images/nalla-ink.jpg" alt="Nalla Ink Left" class="logo-half">
+            </div>
+            <div class="curtain-text-half curtain-text-left">
+                <span class="text-half">NALLA</span>
             </div>
         </div>
-        <div class="curtain-right"></div>
+        <div class="curtain-right">
+            <div class="curtain-logo-half curtain-logo-right">
+                <img src="images/nalla-ink.jpg" alt="Nalla Ink Right" class="logo-half">
+            </div>
+            <div class="curtain-text-half curtain-text-right">
+                <span class="text-half">INK</span>
+            </div>
+        </div>
+        <!-- Barres verticales dorées qui évitent le logo -->
+        <div class="curtain-divider curtain-divider-top"></div>
+        <div class="curtain-divider curtain-divider-bottom"></div>
+        <div class="curtain-bottom-content">
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Navigation -->
@@ -241,6 +271,163 @@
         </div>
     </section>
 
+    <!-- Section Témoignages -->
+    <section class="testimonials" id="testimonials">
+        <div class="section-bg-text">TRUST</div>
+
+        <div class="section-header">
+            <div class="section-label">[ Ils Me Font Confiance ]</div>
+            <h2 class="section-title reveal-text">
+                <span>Ce Qu'ils</span>
+                <span>Disent</span>
+            </h2>
+        </div>
+
+        <div class="testimonials-grid" id="testimonialsGridPublic">
+            <!-- Les témoignages seront chargés dynamiquement depuis la base de données -->
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Chargement des témoignages...</p>
+            </div>
+        </div>
+
+        <!-- Bouton pour ajouter un témoignage -->
+        <div class="testimonial-cta">
+            <button class="btn-primary" id="openTestimonialForm">
+                <span>⭐</span>
+                Laisser un témoignage
+            </button>
+        </div>
+
+        <!-- Modal formulaire témoignage client -->
+        <div class="modal" id="testimonialModal" style="display: none;">
+            <div class="modal-overlay" id="testimonialModalOverlay"></div>
+            <div class="modal-content testimonial-modal-content">
+                <button class="modal-close" id="closeTestimonialModal">×</button>
+                <h3>✨ Partagez votre expérience</h3>
+                <p class="modal-subtitle">Votre avis compte beaucoup pour moi !</p>
+
+                <form id="publicTestimonialForm">
+                    <div class="form-group">
+                        <label for="clientNamePublic">Votre nom *</label>
+                        <input type="text" id="clientNamePublic" name="clientName" required
+                               placeholder="Ex: Marie D.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientServicePublic">Type de service *</label>
+                        <select id="clientServicePublic" name="service" required>
+                            <option value="">Choisissez...</option>
+                            <option value="Tatouage">Tatouage</option>
+                            <option value="Gravure sur miroir">Gravure sur miroir</option>
+                            <option value="Design personnalisé">Design personnalisé</option>
+                            <option value="Retouche">Retouche</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Votre note *</label>
+                        <div class="star-rating-public">
+                            <input type="radio" id="star5public" name="rating" value="5" required>
+                            <label for="star5public" title="Excellent">★</label>
+                            <input type="radio" id="star4public" name="rating" value="4">
+                            <label for="star4public" title="Très bien">★</label>
+                            <input type="radio" id="star3public" name="rating" value="3">
+                            <label for="star3public" title="Bien">★</label>
+                            <input type="radio" id="star2public" name="rating" value="2">
+                            <label for="star2public" title="Moyen">★</label>
+                            <input type="radio" id="star1public" name="rating" value="1">
+                            <label for="star1public" title="Peut mieux faire">★</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="testimonialTextPublic">Votre témoignage *</label>
+                        <textarea id="testimonialTextPublic" name="text" required
+                                  rows="5"
+                                  placeholder="Partagez votre expérience avec Nalla Ink..."></textarea>
+                        <small>Minimum 20 caractères</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancelPublicTestimonial">Annuler</button>
+                        <button type="submit" class="btn-primary" id="submitPublicTestimonial">
+                            <span>📤</span>
+                            Envoyer mon témoignage
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section FAQ -->
+    <section class="faq" id="faq">
+        <div class="section-bg-text">FAQ</div>
+
+        <div class="faq-container">
+            <div class="section-header">
+                <div class="section-label">[ Questions Fréquentes ]</div>
+                <h2 class="section-title reveal-text">
+                    <span>Tout Ce Que</span>
+                    <span>Vous Devez Savoir</span>
+                </h2>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Est-ce que ça fait mal ?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>La douleur varie selon la zone tatouée et la sensibilité de chacun. Les zones osseuses sont plus sensibles. La plupart des clients décrivent une sensation supportable, comparable à une égratignure prolongée.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Combien coûte un tatouage ?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Les tarifs dépendent de la taille, de la complexité et du temps nécessaire. Comptez à partir de 80€ pour un petit motif. Un devis personnalisé vous sera fourni après discussion de votre projet.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Combien de temps dure la cicatrisation ?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>La cicatrisation superficielle prend environ 2-3 semaines. La cicatrisation complète peut prendre jusqu'à 3 mois. Des conseils détaillés de soin vous seront fournis après la séance.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Puis-je apporter mon propre design ?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Absolument ! Je travaille à partir de vos idées et références. Nous collaborons pour créer un design unique qui vous correspond parfaitement.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Comment prendre rendez-vous ?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Contactez-moi par Instagram, email ou WhatsApp. Nous discuterons de votre projet et fixerons une date. Un acompte de 30% est demandé pour confirmer le rendez-vous.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Section Contact -->
     <section class="contact" id="contact">
         <div class="section-bg-text">CONTACT</div>
@@ -305,7 +492,18 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
-    <script src="js/main.js"></script>
+    <!-- Bouton WhatsApp flottant -->
+    <a href="https://wa.me/33XXXXXXXXX?text=Bonjour,%20je%20souhaite%20discuter%20d'un%20projet%20de%20tatouage"
+       class="whatsapp-float"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="Contactez-nous sur WhatsApp">
+        <svg viewBox="0 0 32 32" fill="currentColor">
+            <path d="M16 0C7.164 0 0 7.164 0 16c0 2.828.736 5.588 2.132 8.02L.048 31.344l7.688-1.988A15.93 15.93 0 0016 32c8.836 0 16-7.164 16-16S24.836 0 16 0zm8.252 22.752c-.348.98-1.728 1.8-2.832 2.048-.76.164-1.752.296-5.092-1.092-4.288-1.776-7.06-6.132-7.272-6.412-.212-.28-1.728-2.3-1.728-4.388 0-2.088 1.092-3.116 1.48-3.54.388-.424.848-.532 1.132-.532.284 0 .568.004.816.016.26.012.612-.1.956.732.348.844 1.188 2.9 1.292 3.112.104.212.172.46.036.74-.136.28-.204.456-.404.7-.2.244-.42.544-.6.732-.2.204-.408.428-.176.84.232.412.036 1.16 1.628 2.708 2.048 1.992 3.772 2.62 4.312 2.916.54.296.856.248 1.168-.148.312-.396 1.34-1.56 1.696-2.096.356-.536.712-.448 1.2-.268.488.18 3.108 1.464 3.644 1.732.536.268.892.396 1.024.62.132.224.132 1.296-.216 2.276z"/>
+        </svg>
+    </a>
+
+    <!-- JavaScript avec defer pour ne pas bloquer le rendu -->
+    <script src="js/main.js" defer></script>
 </body>
 </html>

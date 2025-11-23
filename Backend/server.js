@@ -84,6 +84,7 @@ async function initDB() {
         console.log('📦 Création de la base de données...');
         const initialData = {
             images: [],
+            testimonials: [],
             admin: {
                 username: 'admin',
                 password: await bcrypt.hash('admin123', 10)
@@ -165,31 +166,27 @@ app.get('/api/gallery', async (req, res) => {
 // Login
 app.post('/api/admin/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Username et password requis' });
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ error: 'Mot de passe requis' });
         }
-        
+
         const db = await readDB();
-        
-        if (username !== db.admin.username) {
-            return res.status(401).json({ error: 'Identifiants incorrects' });
-        }
-        
+
         const validPassword = await bcrypt.compare(password, db.admin.password);
-        
+
         if (!validPassword) {
-            return res.status(401).json({ error: 'Identifiants incorrects' });
+            return res.status(401).json({ error: 'Mot de passe incorrect' });
         }
-        
+
         const token = jwt.sign(
             { username: db.admin.username },
             process.env.JWT_SECRET || 'changez_moi_en_production',
             { expiresIn: '24h' }
         );
-        
-        console.log('✅ Admin connecté:', username);
+
+        console.log('✅ Admin connecté');
         res.json({ token, message: 'Connexion réussie' });
     } catch (error) {
         console.error('Erreur POST /api/admin/login:', error);
@@ -309,6 +306,159 @@ app.delete('/api/admin/image/:id', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Erreur DELETE /api/admin/image:', error);
         res.status(500).json({ error: 'Erreur lors de la suppression' });
+    }
+});
+
+// ========================================
+// ROUTES TÉMOIGNAGES
+// ========================================
+
+// GET - Récupérer tous les témoignages (public)
+app.get('/api/testimonials', async (req, res) => {
+    try {
+        const db = await readDB();
+
+        // S'assurer que testimonials existe
+        if (!db.testimonials) {
+            db.testimonials = [];
+            await writeDB(db);
+        }
+
+        // Trier par date (les plus récents en premier)
+        const testimonials = db.testimonials.sort((a, b) =>
+            new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        res.json(testimonials);
+    } catch (error) {
+        console.error('Erreur GET /api/testimonials:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des témoignages' });
+    }
+});
+
+// POST - Soumettre un témoignage (public - pas d'auth requise)
+app.post('/api/testimonials/submit', async (req, res) => {
+    try {
+        const { clientName, service, rating, text } = req.body;
+
+        // Validation des champs
+        if (!clientName || !service || !rating || !text) {
+            return res.status(400).json({ error: 'Tous les champs sont requis' });
+        }
+
+        // Validation du rating
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({ error: 'La note doit être entre 1 et 5' });
+        }
+
+        // Validation de la longueur du texte
+        if (text.length < 20) {
+            return res.status(400).json({ error: 'Le témoignage doit contenir au moins 20 caractères' });
+        }
+
+        if (text.length > 500) {
+            return res.status(400).json({ error: 'Le témoignage ne doit pas dépasser 500 caractères' });
+        }
+
+        const db = await readDB();
+
+        if (!db.testimonials) {
+            db.testimonials = [];
+        }
+
+        const newTestimonial = {
+            id: Date.now().toString(),
+            clientName: clientName.trim(),
+            service: service.trim(),
+            rating: parseInt(rating),
+            text: text.trim(),
+            createdAt: new Date().toISOString()
+        };
+
+        db.testimonials.push(newTestimonial);
+        await writeDB(db);
+
+        console.log('✅ Nouveau témoignage public ajouté:', clientName);
+        res.status(201).json({
+            message: 'Témoignage ajouté avec succès',
+            testimonial: newTestimonial
+        });
+    } catch (error) {
+        console.error('Erreur POST /api/testimonials/submit:', error);
+        res.status(500).json({ error: 'Erreur lors de l\'ajout du témoignage' });
+    }
+});
+
+// POST - Ajouter un témoignage (admin)
+app.post('/api/admin/testimonials', authenticateToken, async (req, res) => {
+    try {
+        const { clientName, service, rating, text } = req.body;
+
+        // Validation
+        if (!clientName || !service || !rating || !text) {
+            return res.status(400).json({
+                error: 'Tous les champs sont requis'
+            });
+        }
+
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({
+                error: 'La note doit être entre 1 et 5'
+            });
+        }
+
+        const db = await readDB();
+
+        // S'assurer que testimonials existe
+        if (!db.testimonials) {
+            db.testimonials = [];
+        }
+
+        const newTestimonial = {
+            id: Date.now().toString(),
+            clientName,
+            service,
+            rating,
+            text,
+            createdAt: new Date().toISOString()
+        };
+
+        db.testimonials.push(newTestimonial);
+        await writeDB(db);
+
+        console.log('✅ Témoignage ajouté:', newTestimonial.id);
+        res.status(201).json(newTestimonial);
+    } catch (error) {
+        console.error('Erreur POST /api/admin/testimonials:', error);
+        res.status(500).json({ error: 'Erreur lors de l\'ajout du témoignage' });
+    }
+});
+
+// DELETE - Supprimer un témoignage (admin)
+app.delete('/api/admin/testimonials/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await readDB();
+
+        // S'assurer que testimonials existe
+        if (!db.testimonials) {
+            db.testimonials = [];
+        }
+
+        const testimonialIndex = db.testimonials.findIndex(t => t.id === id);
+
+        if (testimonialIndex === -1) {
+            return res.status(404).json({ error: 'Témoignage introuvable' });
+        }
+
+        db.testimonials.splice(testimonialIndex, 1);
+        await writeDB(db);
+
+        console.log('✅ Témoignage supprimé:', id);
+        res.json({ message: 'Témoignage supprimé avec succès' });
+    } catch (error) {
+        console.error('Erreur DELETE /api/admin/testimonials:', error);
+        res.status(500).json({ error: 'Erreur lors de la suppression du témoignage' });
     }
 });
 
